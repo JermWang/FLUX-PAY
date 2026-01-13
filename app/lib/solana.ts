@@ -65,6 +65,7 @@ export async function findRecentMemoSignature(input: {
 
       const data = ix?.data;
       if (typeof data === "string" && data.length) {
+        if (data === memo) return sig;
         try {
           const decoded = Buffer.from(bs58.decode(data)).toString("utf8");
           if (decoded === memo) return sig;
