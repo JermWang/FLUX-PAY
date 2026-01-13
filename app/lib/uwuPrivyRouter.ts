@@ -45,6 +45,7 @@ export type UwuPrivyTransferData = {
     burners: PrivyBurnerWallet[];
     hopDelaysMs: number[];
     estimatedCompletionMs: number;
+    finalNotBeforeUnixMs: number;
     feeApplied: boolean;
     feeLamports: string;
     createdAtUnix: number;
@@ -112,6 +113,7 @@ export async function createPrivyRoutingPlan(input: {
   const hopExecutionTime = totalDelayMs + hopCount * 2000;
   const randomMinTime = MIN_TRANSFER_TIME_MS + Math.random() * (MAX_TRANSFER_TIME_MS - MIN_TRANSFER_TIME_MS);
   const estimatedCompletionMs = Math.max(hopExecutionTime, randomMinTime);
+  const finalNotBeforeUnixMs = Date.now() + randomMinTime;
   const nowUnix = Math.floor(Date.now() / 1000);
   const feeCollected = feeLamports === 0n;
 
@@ -127,6 +129,7 @@ export async function createPrivyRoutingPlan(input: {
       burners,
       hopDelaysMs,
       estimatedCompletionMs,
+      finalNotBeforeUnixMs,
       feeApplied: !isUwuHolder,
       feeLamports: feeLamports.toString(),
       createdAtUnix: nowUnix,
