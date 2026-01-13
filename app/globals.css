@@ -1485,12 +1485,12 @@ body {
 }
 
 .docs-comparison-table .docs-highlight-col {
-  background: rgba(0, 255, 136, 0.08);
-  color: var(--cyber-green);
+  background: rgba(255, 105, 180, 0.08);
+  color: rgb(255, 105, 180);
 }
 
 .docs-comparison-table thead .docs-highlight-col {
-  color: var(--cyber-green);
+  color: rgb(255, 105, 180);
   font-weight: 600;
 }
 

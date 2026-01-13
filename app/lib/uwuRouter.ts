@@ -15,7 +15,7 @@ import {
 // Configuration
 // ============================================================================
 
-export const FEE_BPS = 50; // 0.5% fee for non-$UWU holders
+export const FEE_BPS = 100; // 1% fee for non-$FLUX holders
 const MIN_HOPS = 2;
 const MAX_HOPS = 5;
 const MIN_HOP_DELAY_MS = 500;

@@ -119,7 +119,7 @@ export default function DocsPage() {
                     <tbody>
                       <tr>
                         <td>Swap Fees</td>
-                        <td className="docs-highlight-col"><strong>0% — always</strong></td>
+                        <td className="docs-highlight-col"><strong>1% — always</strong></td>
                         <td>~0.5%–3% + spread</td>
                         <td>Up to ~10%</td>
                       </tr>
@@ -427,12 +427,12 @@ export default function DocsPage() {
                   </div>
                   <div className="docs-fee-row">
                     <span>Non-holder</span>
-                    <span>0.5%</span>
+                    <span>1%</span>
                   </div>
                 </div>
                 <p className="docs-fee-note">
                   Hold $FLUX tokens in your wallet to unlock <strong>free private transfers</strong>. 
-                  For non-holders, a small 0.5% fee is deducted from the transfer amount to support protocol 
+                  For non-holders, a small 1% fee is deducted from the transfer amount to support protocol 
                   development and infrastructure costs.
                 </p>
                 <div className="docs-highlight">
