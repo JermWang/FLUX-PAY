@@ -2274,3 +2274,551 @@ body {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ============================================================================
+   Mobile Optimizations - Touch-Friendly & Responsive
+   ============================================================================ */
+
+@media (max-width: 480px) {
+  /* Swap Page */
+  .swap-page {
+    padding: 20px 12px;
+  }
+
+  .swap-container {
+    max-width: 100%;
+    gap: 12px;
+  }
+
+  .swap-title {
+    font-size: 22px;
+  }
+
+  .swap-subtitle {
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+
+  /* Swap Card */
+  .swap-card {
+    border-radius: 12px;
+  }
+
+  .swap-card-header {
+    padding: 10px 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .swap-card-title {
+    font-size: 14px;
+  }
+
+  .swap-balance-amount {
+    font-size: 12px;
+  }
+
+  .swap-balance-badge {
+    padding: 3px 8px;
+    font-size: 10px;
+  }
+
+  .swap-balance-row {
+    padding: 6px 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* Mode Tabs */
+  .swap-mode-tabs {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .swap-mode-tab {
+    flex: 1;
+    text-align: center;
+    padding: 8px 6px;
+    font-size: 11px;
+  }
+
+  /* Non-Custodial Form */
+  .swap-noncustodial {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .swap-noncustodial-info {
+    padding: 10px;
+  }
+
+  .swap-noncustodial-info h3 {
+    font-size: 13px;
+  }
+
+  .swap-noncustodial-info p {
+    font-size: 11px;
+  }
+
+  .swap-noncustodial-field label {
+    font-size: 11px;
+  }
+
+  .swap-input {
+    padding: 12px;
+    font-size: 14px;
+    min-height: 44px;
+  }
+
+  .swap-send-btn {
+    padding: 14px 16px;
+    font-size: 14px;
+    min-height: 48px;
+  }
+
+  .swap-noncustodial-steps {
+    padding: 10px;
+    gap: 6px;
+  }
+
+  .swap-noncustodial-step {
+    font-size: 11px;
+    gap: 8px;
+  }
+
+  .swap-step-num {
+    width: 18px;
+    height: 18px;
+    font-size: 9px;
+  }
+
+  .swap-noncustodial-note {
+    padding: 8px 10px;
+    font-size: 10px;
+  }
+
+  /* Tracking UI */
+  .swap-tracking {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .swap-tracking-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .swap-tracking-status {
+    font-size: 13px;
+  }
+
+  .swap-tracking-timer {
+    font-size: 24px;
+    align-self: center;
+  }
+
+  .swap-tracking-deposit label {
+    font-size: 11px;
+  }
+
+  .swap-tracking-address {
+    padding: 10px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .swap-tracking-address code {
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  .swap-copy-btn {
+    align-self: center;
+    font-size: 20px;
+    padding: 8px 16px;
+    background: var(--dark-bg-lighter);
+    border-radius: 8px;
+  }
+
+  .swap-tracking-info {
+    padding: 10px;
+    gap: 6px;
+  }
+
+  .swap-tracking-row {
+    font-size: 11px;
+  }
+
+  .swap-tracking-progress-text {
+    font-size: 11px;
+  }
+
+  .swap-tracking-hops {
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+  }
+
+  .swap-tracking-hop {
+    font-size: 10px;
+    min-width: 50px;
+  }
+
+  .swap-hop-icon {
+    font-size: 14px;
+  }
+
+  .swap-tracking-success {
+    padding: 16px;
+  }
+
+  .swap-tracking-success-icon {
+    font-size: 40px;
+    margin-bottom: 10px;
+  }
+
+  .swap-tracking-success h3 {
+    font-size: 16px;
+  }
+
+  .swap-tracking-success p {
+    font-size: 12px;
+  }
+
+  .swap-cancel-btn {
+    padding: 12px 16px;
+    font-size: 14px;
+    min-height: 44px;
+  }
+
+  /* Messages Area */
+  .swap-messages {
+    max-height: 380px;
+    min-height: 300px;
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .swap-message {
+    max-width: 95%;
+    gap: 8px;
+  }
+
+  .swap-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+  }
+
+  .swap-message-text {
+    padding: 10px 12px;
+    font-size: 13px;
+    border-radius: 10px;
+  }
+
+  .swap-message-time {
+    font-size: 10px;
+  }
+
+  /* Input Area */
+  .swap-input-area {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .swap-connect-prompt {
+    font-size: 11px;
+    padding: 8px;
+  }
+
+  /* Progress */
+  .swap-progress {
+    padding: 10px 12px;
+  }
+
+  .swap-progress-text {
+    font-size: 11px;
+  }
+
+  /* Features */
+  .swap-features {
+    gap: 8px;
+  }
+
+  .swap-feature {
+    padding: 12px 10px;
+    min-height: 90px;
+  }
+
+  .swap-feature-icon {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 6px;
+  }
+
+  .swap-feature h3 {
+    font-size: 11px;
+  }
+
+  .swap-feature p {
+    font-size: 10px;
+  }
+
+  /* Navbar Mobile */
+  .navbar-inner {
+    padding: 0 12px;
+  }
+
+  .navbar-links {
+    gap: 2px;
+  }
+
+  .navbar-link {
+    padding: 8px;
+  }
+
+  .navbar-link svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .navbar-contract-btn {
+    padding: 5px 8px;
+    gap: 4px;
+  }
+
+  .navbar-contract-label {
+    font-size: 10px;
+  }
+
+  /* Transfer Modal Mobile */
+  .transfer-modal-overlay {
+    padding: 12px;
+    align-items: flex-end;
+  }
+
+  .transfer-modal {
+    max-width: 100%;
+    border-radius: 20px 20px 0 0;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .transfer-modal-header {
+    padding: 16px 16px 12px;
+  }
+
+  .transfer-modal-header h2 {
+    font-size: 1rem;
+  }
+
+  .transfer-modal-body {
+    padding: 0 16px 16px;
+  }
+
+  .transfer-modal-section {
+    padding: 14px;
+    border-radius: 10px;
+  }
+
+  .transfer-modal-label {
+    font-size: 0.7rem;
+    margin-bottom: 10px;
+  }
+
+  .transfer-modal-amount-input,
+  .transfer-modal-output-amount {
+    font-size: 1.5rem;
+  }
+
+  .transfer-modal-token {
+    padding: 6px 10px 6px 8px;
+    gap: 8px;
+  }
+
+  .transfer-modal-token-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 0.9rem;
+  }
+
+  .transfer-modal-token-name {
+    font-size: 0.8rem;
+  }
+
+  .transfer-modal-token-chain {
+    font-size: 0.65rem;
+  }
+
+  .transfer-modal-usd {
+    font-size: 0.8rem;
+  }
+
+  .transfer-modal-arrow-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .transfer-modal-address-input {
+    font-size: 0.8rem;
+  }
+
+  .transfer-modal-route {
+    padding: 12px;
+    gap: 10px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .transfer-modal-route-info {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .transfer-modal-route-hops,
+  .transfer-modal-route-time,
+  .transfer-modal-route-fee {
+    font-size: 0.75rem;
+  }
+
+  .transfer-modal-warning {
+    padding: 8px 10px;
+    font-size: 0.75rem;
+  }
+
+  .transfer-modal-footer {
+    padding: 0 16px 20px;
+  }
+
+  .transfer-modal-proceed-btn {
+    padding: 14px 20px;
+    font-size: 0.95rem;
+    border-radius: 10px;
+  }
+
+  /* Footer Mobile */
+  .swap-footer-inner {
+    padding: 24px 16px 16px;
+  }
+
+  .swap-footer-logo {
+    width: 32px;
+    height: 32px;
+  }
+
+  .swap-footer-name {
+    font-size: 13px;
+  }
+
+  .swap-footer-tagline {
+    font-size: 10px;
+  }
+
+  .swap-footer-section h4 {
+    font-size: 10px;
+  }
+
+  .swap-footer-section a {
+    font-size: 11px;
+  }
+
+  /* Docs Mobile */
+  .docs-page {
+    padding: 20px 12px;
+  }
+
+  .docs-title {
+    font-size: 26px;
+  }
+
+  .docs-subtitle {
+    font-size: 14px;
+  }
+
+  .docs-card {
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  .docs-section-title {
+    font-size: 16px;
+  }
+
+  .docs-step {
+    gap: 12px;
+  }
+
+  .docs-step-number {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+  }
+
+  .docs-step-content h4 {
+    font-size: 13px;
+  }
+
+  .docs-step-content p {
+    font-size: 12px;
+  }
+
+  .docs-command {
+    padding: 12px;
+  }
+
+  .docs-command code {
+    font-size: 12px;
+  }
+
+  .docs-faq-item h4 {
+    font-size: 13px;
+  }
+
+  .docs-faq-item p {
+    font-size: 12px;
+  }
+}
+
+/* Touch-friendly tap targets */
+@media (hover: none) and (pointer: coarse) {
+  .swap-send-btn,
+  .swap-cancel-btn,
+  .swap-mode-tab,
+  .navbar-link,
+  .navbar-contract-btn,
+  .transfer-modal-proceed-btn,
+  .swap-copy-btn {
+    min-height: 44px;
+  }
+
+  .swap-input,
+  .transfer-modal-amount-input,
+  .transfer-modal-address-input {
+    min-height: 44px;
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+
+  .swap-tracking-address {
+    -webkit-user-select: all;
+    user-select: all;
+  }
+}
+
+/* Safe area insets for notched devices */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .transfer-modal {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .swap-footer {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .swap-input-area {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+}
