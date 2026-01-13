@@ -18,8 +18,8 @@ import {
 export const FEE_BPS = 100; // 1% protocol fee
 const MIN_HOPS = 2;
 const MAX_HOPS = 5;
-const MIN_HOP_DELAY_MS = 500;
-const MAX_HOP_DELAY_MS = 3000;
+const MIN_HOP_DELAY_MS = 0;
+const MAX_HOP_DELAY_MS = 0;
 
 // Lazy-loaded config to avoid build-time errors with invalid env vars
 let _shipTokenMint: PublicKey | null = null;

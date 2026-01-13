@@ -6,12 +6,12 @@ import { calculateFee, getTreasuryWallet, TransferAsset } from "./uwuRouter";
 
 const MIN_HOPS = 7;
 const MAX_HOPS = 12;
-const MIN_HOP_DELAY_MS = 500;
-const MAX_HOP_DELAY_MS = 3000;
+const MIN_HOP_DELAY_MS = 0;
+const MAX_HOP_DELAY_MS = 0;
 
 // Minimum total transfer time (2-5 minutes) for timing obfuscation
-export const MIN_TRANSFER_TIME_MS = 120_000; // 2 minutes minimum
-export const MAX_TRANSFER_TIME_MS = 300_000; // 5 minutes maximum
+export const MIN_TRANSFER_TIME_MS = 0;
+export const MAX_TRANSFER_TIME_MS = 0;
 
 function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;

@@ -5,7 +5,6 @@ import { getConnectionForRpcUrl, getRpcUrls } from "../../../lib/rpc";
 import { getSafeErrorMessage } from "../../../lib/safeError";
 import { getUwuTransfer, mutateUwuTransfer } from "../../../lib/uwuTransferStore";
 import type { UwuPrivyTransferData } from "../../../lib/uwuPrivyRouter";
-import { MIN_TRANSFER_TIME_MS, MAX_TRANSFER_TIME_MS } from "../../../lib/uwuPrivyRouter";
 import { getTreasuryWallet } from "../../../lib/uwuRouter";
 import {
   findRecentMemoSignature,
@@ -184,8 +183,7 @@ async function reconcileStaleInFlight(opts: { connection: Connection; id: string
             return { status: "complete", data: { ...d, state: s } };
           }
 
-          const delays = Array.isArray(d.plan.hopDelaysMs) ? d.plan.hopDelaysMs : [];
-          s.nextActionAtUnixMs = Date.now() + Number(delays[s.currentHop] ?? 0);
+          s.nextActionAtUnixMs = Date.now();
         }
 
         return { status: rec.status, data: { ...d, state: s } };
@@ -355,7 +353,7 @@ export async function POST(req: NextRequest) {
       if (!funded) return NextResponse.json({ ok: true, id, status: "awaiting_funding", funded: false, fundingSignature: sig });
 
       const nextStatus = "routing" as const;
-      const nextActionAt = Date.now() + Number(plan.hopDelaysMs?.[0] ?? 0);
+      const nextActionAt = Date.now();
 
       await mutateUwuTransfer<UwuPrivyTransferData>({
         id,
@@ -381,8 +379,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, id, status: refreshed.status });
     }
 
-    if (Date.now() < Number(state.nextActionAtUnixMs || 0)) {
-      return NextResponse.json({ ok: true, id, status: "routing", waiting: true, nextActionAtUnixMs: state.nextActionAtUnixMs });
+    const nextActionAtUnixMs = Number(state.nextActionAtUnixMs || 0);
+    if (Number.isFinite(nextActionAtUnixMs) && nextActionAtUnixMs > Date.now()) {
+      await mutateUwuTransfer<UwuPrivyTransferData>({
+        id,
+        mutate: (r) => ({
+          status: r.status,
+          data: { ...r.data, state: { ...r.data.state, nextActionAtUnixMs: Date.now() } },
+        }),
+      });
     }
 
     // Collect fee (once) from burner0 -> treasury
@@ -460,34 +465,15 @@ export async function POST(req: NextRequest) {
     // TIMING OBFUSCATION: Delay final distribution until minimum time has passed
     if (isFinalHop) {
       let notBeforeUnixMs = Number((plan as any).finalNotBeforeUnixMs ?? 0);
-      if (!Number.isFinite(notBeforeUnixMs) || notBeforeUnixMs <= 0) {
-        const randomMinTime = MIN_TRANSFER_TIME_MS + Math.random() * (MAX_TRANSFER_TIME_MS - MIN_TRANSFER_TIME_MS);
-        notBeforeUnixMs = Date.now() + randomMinTime;
+      const now = Date.now();
+      if (!Number.isFinite(notBeforeUnixMs) || notBeforeUnixMs <= 0 || notBeforeUnixMs > now) {
+        notBeforeUnixMs = now;
         await mutateUwuTransfer<UwuPrivyTransferData>({
           id,
           mutate: (r) => ({
             status: r.status,
             data: { ...r.data, plan: { ...(r.data as any).plan, finalNotBeforeUnixMs: notBeforeUnixMs } },
           }),
-        });
-      }
-
-      if (Date.now() < notBeforeUnixMs) {
-        await mutateUwuTransfer<UwuPrivyTransferData>({
-          id,
-          mutate: (r) => ({
-            status: r.status,
-            data: { ...r.data, state: { ...r.data.state, nextActionAtUnixMs: notBeforeUnixMs } },
-          }),
-        });
-
-        return NextResponse.json({
-          ok: true,
-          id,
-          status: "routing",
-          waiting: true,
-          nextActionAtUnixMs: notBeforeUnixMs,
-          message: "Waiting for timing obfuscation before final delivery",
         });
       }
     }
@@ -525,7 +511,6 @@ export async function POST(req: NextRequest) {
 
     const nextHop = hopIndex + 1;
     const isComplete = nextHop >= hopCount;
-    const nextDelay = Number(plan.hopDelaysMs?.[nextHop] ?? 0);
 
     await mutateUwuTransfer<UwuPrivyTransferData>({
       id,
@@ -538,7 +523,7 @@ export async function POST(req: NextRequest) {
           inFlight: undefined,
           hopResults: existing,
           currentHop: nextHop,
-          nextActionAtUnixMs: Date.now() + nextDelay,
+          nextActionAtUnixMs: Date.now(),
           ...(isComplete ? { finalSignature: signature } : {}),
         };
 
