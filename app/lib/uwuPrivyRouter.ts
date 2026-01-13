@@ -91,7 +91,7 @@ export async function createPrivyRoutingPlan(input: {
   if (feeLamports > 0n) {
     const treasury = getTreasuryWallet();
     if (!treasury) {
-      throw new Error("UWU_TREASURY_WALLET is required when feeLamports > 0");
+      throw new Error("FLUX_TREASURY_WALLET is required when feeLamports > 0");
     }
   }
 

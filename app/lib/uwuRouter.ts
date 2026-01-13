@@ -39,7 +39,7 @@ export function getUwuTokenMint(): PublicKey | null {
 
 export function getTreasuryWallet(): PublicKey | null {
   if (_treasuryWallet) return _treasuryWallet;
-  const raw = process.env.UWU_TREASURY_WALLET?.trim();
+  const raw = (process.env.FLUX_TREASURY_WALLET?.trim() || process.env.UWU_TREASURY_WALLET?.trim()) ?? "";
   if (!raw) return null;
   try {
     _treasuryWallet = new PublicKey(raw);

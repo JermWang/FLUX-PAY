@@ -373,7 +373,7 @@ export async function POST(req: NextRequest) {
     // Collect fee (once) from burner0 -> treasury
     if (!state.feeCollected && feeLamports > 0n) {
       const treasury = getTreasuryWallet();
-      if (!treasury) throw new Error("UWU_TREASURY_WALLET is required when feeLamports > 0");
+      if (!treasury) throw new Error("FLUX_TREASURY_WALLET is required when feeLamports > 0");
 
       await mutateUwuTransfer<UwuPrivyTransferData>({
         id,
