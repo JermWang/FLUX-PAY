@@ -1450,6 +1450,55 @@ body {
   margin-bottom: 0;
 }
 
+/* Comparison Table */
+.docs-comparison-table {
+  overflow-x: auto;
+}
+
+.docs-comparison-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.docs-comparison-table th,
+.docs-comparison-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--dark-border);
+}
+
+.docs-comparison-table th {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.docs-comparison-table td {
+  color: var(--text-secondary);
+}
+
+.docs-comparison-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.docs-comparison-table .docs-highlight-col {
+  background: rgba(0, 255, 136, 0.08);
+  color: var(--cyber-green);
+}
+
+.docs-comparison-table thead .docs-highlight-col {
+  color: var(--cyber-green);
+  font-weight: 600;
+}
+
+.docs-comparison-table td strong {
+  color: var(--cyber-green);
+  font-weight: 600;
+}
+
 /* Steps */
 .docs-steps {
   display: flex;

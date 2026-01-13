@@ -23,6 +23,12 @@ export default function DocsPage() {
           </div>
           <nav className="docs-toc-nav">
             <button 
+              className={`docs-toc-link ${activeSection === "comparison" ? "docs-toc-link--active" : ""}`}
+              onClick={() => scrollToSection("comparison")}
+            >
+              Comparison
+            </button>
+            <button 
               className={`docs-toc-link ${activeSection === "overview" ? "docs-toc-link--active" : ""}`}
               onClick={() => scrollToSection("overview")}
             >
@@ -76,6 +82,12 @@ export default function DocsPage() {
             >
               FAQ
             </button>
+            <button 
+              className={`docs-toc-link ${activeSection === "staking" ? "docs-toc-link--active" : ""}`}
+              onClick={() => scrollToSection("staking")}
+            >
+              Staking
+            </button>
           </nav>
         </aside>
 
@@ -90,13 +102,100 @@ export default function DocsPage() {
           </div>
 
           <div className="docs-content">
+            {/* Comparison Chart */}
+            <section id="comparison" className="docs-section">
+              <h2 className="docs-section-title">FluxPay vs Existing &quot;Anonymous&quot; Swaps</h2>
+              <div className="docs-card">
+                <div className="docs-comparison-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Feature</th>
+                        <th className="docs-highlight-col">FluxPay</th>
+                        <th>SideShift</th>
+                        <th>HoudiniSwap</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Swap Fees</td>
+                        <td className="docs-highlight-col"><strong>0% — always</strong></td>
+                        <td>~0.5%–3% + spread</td>
+                        <td>Up to ~10%</td>
+                      </tr>
+                      <tr>
+                        <td>KYC / Accounts</td>
+                        <td className="docs-highlight-col"><strong>None</strong></td>
+                        <td>None</td>
+                        <td>None</td>
+                      </tr>
+                      <tr>
+                        <td>Custody</td>
+                        <td className="docs-highlight-col"><strong>Non-custodial</strong></td>
+                        <td>Non-custodial</td>
+                        <td>Non-custodial</td>
+                      </tr>
+                      <tr>
+                        <td>Privacy Model</td>
+                        <td className="docs-highlight-col"><strong>Privacy by default</strong></td>
+                        <td>Optional / route-dependent</td>
+                        <td>Strong but slow</td>
+                      </tr>
+                      <tr>
+                        <td>Routing</td>
+                        <td className="docs-highlight-col"><strong>Optimized smart routing</strong></td>
+                        <td>Standard routing</td>
+                        <td>Privacy-heavy routing</td>
+                      </tr>
+                      <tr>
+                        <td>Confirmation Strategy</td>
+                        <td className="docs-highlight-col"><strong>Minimized, chain-aware</strong></td>
+                        <td>Fixed per chain</td>
+                        <td>High confirmation thresholds</td>
+                      </tr>
+                      <tr>
+                        <td>Typical Completion Time</td>
+                        <td className="docs-highlight-col"><strong>2–10 minutes*</strong></td>
+                        <td>5–20 minutes</td>
+                        <td>20–60+ minutes</td>
+                      </tr>
+                      <tr>
+                        <td>Fast Privacy Rails</td>
+                        <td className="docs-highlight-col"><strong>Yes (prioritized)</strong></td>
+                        <td>Partial</td>
+                        <td>No</td>
+                      </tr>
+                      <tr>
+                        <td>Fee Transparency</td>
+                        <td className="docs-highlight-col"><strong>Absolute</strong></td>
+                        <td>Variable</td>
+                        <td>Variable</td>
+                      </tr>
+                      <tr>
+                        <td>Designed For</td>
+                        <td className="docs-highlight-col"><strong>Everyday private payments</strong></td>
+                        <td>Convenience swaps</td>
+                        <td>Deep obfuscation</td>
+                      </tr>
+                      <tr>
+                        <td>UX Philosophy</td>
+                        <td className="docs-highlight-col"><strong>Payments, not mixing</strong></td>
+                        <td>Exchange-like</td>
+                        <td>Obfuscation-first</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+
             {/* Overview */}
             <section id="overview" className="docs-section">
               <h2 className="docs-section-title">Overview</h2>
               <div className="docs-card">
                 <p>
                   FLUX Pay is a <strong>non-custodial privacy layer</strong> built on top of Solana that enables 
-                  privacy-oriented token transfers. Unlike basic direct sends, FLUX Pay uses an 
+                  privacy-oriented token transfers. Unlike basic direct sends, FLUX Pay uses an{" "}
                   <strong>Ephemeral Routing Protocol (ERP)</strong> to route through short-lived routing accounts 
                   to make simple address-to-address traceability harder.
                 </p>
@@ -426,7 +525,7 @@ export default function DocsPage() {
                   <div className="docs-faq-item">
                     <h4>Do I need to connect my wallet?</h4>
                     <p>
-                      For <strong>AI Assistant</strong> transfers, yes—you&apos;ll connect a wallet to sign the initial funding transaction. 
+                      For <strong>AI Assistant</strong> transfers, yes—you&apos;ll connect a wallet to sign the initial funding transaction.{" "}
                       <strong>Non-Custodial</strong> mode (no wallet connect) is coming soon.
                     </p>
                   </div>
@@ -449,6 +548,84 @@ export default function DocsPage() {
                       If a hop fails, the UI will show the current status. If you run into issues, try again later or reach out to support.
                     </p>
                   </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Staking */}
+            <section id="staking" className="docs-section">
+              <h2 className="docs-section-title">STAKING COMING SOON</h2>
+              <div className="docs-card">
+                <div className="docs-faq">
+                  <div className="docs-faq-item">
+                    <h4>What is FluxPay staking?</h4>
+                    <p>
+                      FluxPay staking allows token holders to lock their tokens into the protocol to support the network and participate in its growth. In return, stakers receive ongoing rewards tied to real platform activity—not inflationary emissions.
+                    </p>
+                  </div>
+                  <div className="docs-faq-item">
+                    <h4>When will staking go live?</h4>
+                    <p>
+                      Staking is coming soon. The rollout will be announced publicly once audits, infrastructure, and launch parameters are finalized.
+                    </p>
+                  </div>
+                  <div className="docs-faq-item">
+                    <h4>What rewards do stakers receive?</h4>
+                    <p>
+                      Stakers will receive rewards derived from protocol activity and ecosystem incentives. FluxPay is designed around sustainable rewards, not short-term yield farming or artificial APYs.
+                    </p>
+                  </div>
+                  <div className="docs-faq-item">
+                    <h4>Is staking inflationary?</h4>
+                    <p>
+                      No. FluxPay staking is built to avoid excessive inflation. Rewards are aligned with real usage and long-term network health rather than token dilution.
+                    </p>
+                  </div>
+                  <div className="docs-faq-item">
+                    <h4>Is staking required to use FluxPay?</h4>
+                    <p>
+                      No. FluxPay swaps and payments remain free and accessible to everyone. Staking is optional and designed for users who want to support the network and participate more deeply in its economics.
+                    </p>
+                  </div>
+                  <div className="docs-faq-item">
+                    <h4>Will staking require KYC or accounts?</h4>
+                    <p>
+                      No. FluxPay staking will be permissionless, with no KYC or account creation required.
+                    </p>
+                  </div>
+                  <div className="docs-faq-item">
+                    <h4>Can I unstake my tokens at any time?</h4>
+                    <p>
+                      Unstaking mechanics, including any potential cooldown periods, will be clearly disclosed before launch. FluxPay prioritizes transparency and user control.
+                    </p>
+                  </div>
+                  <div className="docs-faq-item">
+                    <h4>Is FluxPay staking custodial?</h4>
+                    <p>
+                      No. FluxPay staking is designed to be non-custodial, allowing users to retain control of their tokens at all times.
+                    </p>
+                  </div>
+                  <div className="docs-faq-item">
+                    <h4>How does staking benefit the FluxPay ecosystem?</h4>
+                    <p>
+                      Staking aligns long-term holders with the success of the network, strengthens protocol resilience, and supports ongoing development—without introducing fees for everyday users.
+                    </p>
+                  </div>
+                  <div className="docs-faq-item">
+                    <h4>How will staking rewards be distributed?</h4>
+                    <p>
+                      Reward distribution details will be published prior to launch. All mechanisms will be verifiable and on-chain.
+                    </p>
+                  </div>
+                  <div className="docs-faq-item">
+                    <h4>How do I prepare for staking?</h4>
+                    <p>
+                      Hold FluxPay tokens in a supported wallet and follow official FluxPay channels for launch announcements and instructions.
+                    </p>
+                  </div>
+                </div>
+                <div className="docs-highlight">
+                  <strong>Important Notice:</strong> FluxPay staking rewards are not guaranteed and may vary based on network conditions and protocol activity. Staking involves risk. Users should always do their own research before participating.
                 </div>
               </div>
             </section>
