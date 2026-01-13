@@ -49,6 +49,7 @@ type QuickSendState = {
   currentHop: number;
   startTime: number;
   estimatedArrival: number;
+  fundingExpiresAtUnixMs?: number;
   txSignature?: string;
   error?: string;
 };
@@ -109,6 +110,7 @@ Protocol fee: 1%`,
   const [quickSendState, setQuickSendState] = useState<QuickSendState | null>(null);
   const [quickSendForm, setQuickSendForm] = useState({ destination: "", amount: "" });
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [fundingSecondsLeft, setFundingSecondsLeft] = useState<number | null>(null);
   const [transferModalData, setTransferModalData] = useState<TransferModalData | null>(null);
   const [isModalSigning, setIsModalSigning] = useState(false);
 
@@ -210,6 +212,10 @@ Protocol fee: 1%`,
       }
 
       // Start tracking with real plan data
+      const fundingExpiresAtUnixMs =
+        typeof data?.fundingExpiresAtUnixMs === "number" && Number.isFinite(data.fundingExpiresAtUnixMs)
+          ? Number(data.fundingExpiresAtUnixMs)
+          : Date.now() + 30 * 60 * 1000;
       setQuickSendState({
         status: "awaiting_deposit",
         planId: data.id,
@@ -220,8 +226,10 @@ Protocol fee: 1%`,
         currentHop: 0,
         startTime: Date.now(),
         estimatedArrival: Date.now() + (data.estimatedCompletionMs || 60000),
+        fundingExpiresAtUnixMs,
       });
       setElapsedTime(0);
+      setFundingSecondsLeft(Math.max(0, Math.ceil((fundingExpiresAtUnixMs - Date.now()) / 1000)));
 
       // Start polling for deposit and routing progress
       startNonCustodialPolling(data.id);
@@ -239,6 +247,46 @@ Protocol fee: 1%`,
       nonCustodialPollRef.current = null;
     }
   }, []);
+
+  useEffect(() => {
+    if (!quickSendState || quickSendState.status !== "awaiting_deposit") {
+      setFundingSecondsLeft(null);
+      return;
+    }
+
+    const expiresAt = Number(quickSendState.fundingExpiresAtUnixMs ?? 0);
+    if (!Number.isFinite(expiresAt) || expiresAt <= 0) {
+      setFundingSecondsLeft(null);
+      return;
+    }
+
+    const tick = () => {
+      const left = Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000));
+      setFundingSecondsLeft(left);
+      if (left <= 0) {
+        stopNonCustodialPolling();
+        fetch("/api/transfer/step", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: quickSendState.planId }),
+          cache: "no-store",
+        }).catch(() => null);
+        setQuickSendState((prev) =>
+          prev
+            ? {
+                ...prev,
+                status: "failed",
+                error: "Funding window expired. Please restart the transfer.",
+              }
+            : null
+        );
+      }
+    };
+
+    tick();
+    const interval = window.setInterval(tick, 1000);
+    return () => window.clearInterval(interval);
+  }, [quickSendState, stopNonCustodialPolling]);
 
   const startNonCustodialPolling = useCallback((planId: string) => {
     stopNonCustodialPolling();
@@ -297,6 +345,10 @@ Protocol fee: 1%`,
             hopCount: hopCount || prev.hopCount,
             currentHop,
             txSignature: statusData?.state?.finalSignature || prev.txSignature,
+            error:
+              serverStatus === "failed"
+                ? String(statusData?.state?.lastError ?? prev.error ?? "Transfer failed")
+                : prev.error,
           };
         });
 
@@ -322,6 +374,7 @@ Protocol fee: 1%`,
     setQuickSendState(null);
     setQuickSendForm({ destination: "", amount: "" });
     setElapsedTime(0);
+    setFundingSecondsLeft(null);
   };
 
   const formatElapsedTime = (seconds: number) => {
@@ -591,6 +644,10 @@ Protocol fee: 1%`,
         feeSol,
         planId: planData.id,
         firstBurnerPubkey: planData.firstBurnerPubkey,
+        fundingExpiresAtUnixMs:
+          typeof planData?.fundingExpiresAtUnixMs === "number" && Number.isFinite(planData.fundingExpiresAtUnixMs)
+            ? Number(planData.fundingExpiresAtUnixMs)
+            : undefined,
       });
 
       // Also add a chat message
@@ -623,6 +680,7 @@ Protocol fee: 1%`,
         firstBurnerPubkey: transferModalData.firstBurnerPubkey,
         hopCount: transferModalData.hopCount,
         amount: transferModalData.amount,
+        fundingExpiresAtUnixMs: transferModalData.fundingExpiresAtUnixMs,
       };
 
       if (amountChanged || destChanged) {
@@ -652,6 +710,10 @@ Protocol fee: 1%`,
           firstBurnerPubkey: newPlanData.firstBurnerPubkey,
           hopCount: newPlanData.hopCount,
           amount: editedAmount,
+          fundingExpiresAtUnixMs:
+            typeof newPlanData?.fundingExpiresAtUnixMs === "number" && Number.isFinite(newPlanData.fundingExpiresAtUnixMs)
+              ? Number(newPlanData.fundingExpiresAtUnixMs)
+              : undefined,
         };
       }
 
@@ -1034,7 +1096,7 @@ Protocol fee: 1%`,
                       <span className="swap-tracking-pulse"></span>
                       Awaiting Deposit
                     </div>
-                    <div className="swap-tracking-timer">{formatElapsedTime(elapsedTime)}</div>
+                    <div className="swap-tracking-timer">{formatElapsedTime(fundingSecondsLeft ?? 0)}</div>
                   </div>
                   
                   <div className="swap-tracking-deposit">
@@ -1070,6 +1132,20 @@ Protocol fee: 1%`,
 
                   <button className="swap-cancel-btn" onClick={resetQuickSend}>
                     Cancel
+                  </button>
+                </div>
+              )}
+
+              {quickSendState && quickSendState.status === "failed" && (
+                <div className="swap-tracking swap-tracking--complete">
+                  <div className="swap-tracking-success">
+                    <div className="swap-tracking-success-icon">❌</div>
+                    <h3>Transfer Cancelled</h3>
+                    <p>{quickSendState.error || "This transfer could not be completed. Please restart."}</p>
+                  </div>
+
+                  <button className="swap-send-btn" onClick={resetQuickSend}>
+                    Restart
                   </button>
                 </div>
               )}

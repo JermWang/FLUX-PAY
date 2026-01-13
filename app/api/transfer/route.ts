@@ -67,6 +67,7 @@ export async function POST(req: NextRequest) {
       id: data.plan.id,
       hopCount: data.plan.hopCount,
       estimatedCompletionMs: data.plan.estimatedCompletionMs,
+      fundingExpiresAtUnixMs: data.plan.fundingExpiresAtUnixMs,
       feeApplied: data.plan.feeApplied,
       feeLamports: data.plan.feeLamports,
       firstBurnerPubkey: data.plan.burners[0]?.address,

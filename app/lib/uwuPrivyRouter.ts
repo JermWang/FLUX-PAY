@@ -46,6 +46,7 @@ export type UwuPrivyTransferData = {
     hopDelaysMs: number[];
     estimatedCompletionMs: number;
     finalNotBeforeUnixMs: number;
+    fundingExpiresAtUnixMs: number;
     feeApplied: boolean;
     feeLamports: string;
     createdAtUnix: number;
@@ -116,6 +117,7 @@ export async function createPrivyRoutingPlan(input: {
   const randomMinTime = MIN_TRANSFER_TIME_MS + Math.random() * (MAX_TRANSFER_TIME_MS - MIN_TRANSFER_TIME_MS);
   const estimatedCompletionMs = Math.max(hopExecutionTime, randomMinTime);
   const finalNotBeforeUnixMs = Date.now() + randomMinTime;
+  const fundingExpiresAtUnixMs = Date.now() + 30 * 60 * 1000;
   const nowUnix = Math.floor(Date.now() / 1000);
   const feeCollected = feeLamports === 0n;
 
@@ -132,6 +134,7 @@ export async function createPrivyRoutingPlan(input: {
       hopDelaysMs,
       estimatedCompletionMs,
       finalNotBeforeUnixMs,
+      fundingExpiresAtUnixMs,
       feeApplied: feeLamports > 0n,
       feeLamports: feeLamports.toString(),
       createdAtUnix: nowUnix,

@@ -235,6 +235,21 @@ export async function POST(req: NextRequest) {
       const burner0 = plan.burners?.[0];
       if (!burner0?.address) return NextResponse.json({ error: "Missing routing account" }, { status: 500 });
 
+      const expiresAt = Number((plan as any)?.fundingExpiresAtUnixMs ?? 0);
+      if (expiresAt > 0 && Date.now() > expiresAt) {
+        await mutateUwuTransfer<UwuPrivyTransferData>({
+          id,
+          mutate: (r) => ({
+            status: "failed",
+            data: {
+              ...r.data,
+              state: { ...r.data.state, lastError: "Funding window expired. Please restart the transfer." },
+            },
+          }),
+        });
+        return NextResponse.json({ ok: true, id, status: "failed" });
+      }
+
       const sig = fundingSignature || state.fundingSignature;
       const now = Date.now();
       const shouldPersistSig = !!sig && (!state.fundingSignature || state.fundingSignature !== sig);

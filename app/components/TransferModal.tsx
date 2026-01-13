@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export type TransferModalData = {
   amount: number;
@@ -12,6 +12,7 @@ export type TransferModalData = {
   feeSol: number;
   planId: string;
   firstBurnerPubkey: string;
+  fundingExpiresAtUnixMs?: number;
 };
 
 type TransferModalProps = {
@@ -26,6 +27,8 @@ export default function TransferModal({ isOpen, data, onConfirm, onCancel, isLoa
   const [editedAmount, setEditedAmount] = useState("");
   const [editedDestination, setEditedDestination] = useState("");
   const [hasChanges, setHasChanges] = useState(false);
+  const [fundingSecondsLeft, setFundingSecondsLeft] = useState<number | null>(null);
+  const expiryNotifiedRef = useRef(false);
 
   // Initialize editable fields when modal opens
   useEffect(() => {
@@ -36,12 +39,55 @@ export default function TransferModal({ isOpen, data, onConfirm, onCancel, isLoa
     }
   }, [data]);
 
+  useEffect(() => {
+    if (!isOpen || !data || typeof data.fundingExpiresAtUnixMs !== "number") {
+      setFundingSecondsLeft(null);
+      expiryNotifiedRef.current = false;
+      return;
+    }
+
+    const expiresAt = Number(data.fundingExpiresAtUnixMs);
+    if (!Number.isFinite(expiresAt) || expiresAt <= 0) {
+      setFundingSecondsLeft(null);
+      expiryNotifiedRef.current = false;
+      return;
+    }
+
+    expiryNotifiedRef.current = false;
+
+    const tick = () => {
+      const left = Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000));
+      setFundingSecondsLeft(left);
+
+      if (left <= 0 && !expiryNotifiedRef.current) {
+        expiryNotifiedRef.current = true;
+        fetch("/api/transfer/step", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: data.planId }),
+          cache: "no-store",
+        }).catch(() => null);
+      }
+    };
+
+    tick();
+    const interval = window.setInterval(tick, 1000);
+    return () => window.clearInterval(interval);
+  }, [data, isOpen]);
+
   if (!isOpen || !data) return null;
 
   const estimatedMinutes = Math.ceil(data.estimatedTimeMs / 60000);
   const currentAmount = parseFloat(editedAmount) || 0;
   const estimatedUsd = (currentAmount * 180).toFixed(2); // Rough SOL price estimate
   const netAmount = currentAmount > 0 ? Math.max(0, currentAmount - (data.feeApplied ? data.feeSol : 0)) : 0;
+  const fundingExpired = fundingSecondsLeft != null && fundingSecondsLeft <= 0;
+
+  const formatElapsedTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
 
   const handleAmountChange = (value: string) => {
     // Only allow valid number input
@@ -75,6 +121,20 @@ export default function TransferModal({ isOpen, data, onConfirm, onCancel, isLoa
         </div>
 
         <div className="transfer-modal-body">
+          {fundingSecondsLeft != null && (
+            <div className="transfer-modal-section">
+              <label className="transfer-modal-label">Funding Window</label>
+              <div className="transfer-modal-output-row">
+                <span className="transfer-modal-output-amount">{formatElapsedTime(fundingSecondsLeft)}</span>
+              </div>
+              {fundingExpired && (
+                <div className="transfer-modal-warning">
+                  <span>Funding window expired. Please restart the transfer.</span>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* From Section */}
           <div className="transfer-modal-section">
             <label className="transfer-modal-label">From</label>
@@ -160,10 +220,10 @@ export default function TransferModal({ isOpen, data, onConfirm, onCancel, isLoa
 
         {/* Footer */}
         <div className="transfer-modal-footer">
-          <button 
-            className="transfer-modal-proceed-btn" 
+          <button
+            className="transfer-modal-proceed-btn"
             onClick={handleConfirm}
-            disabled={isLoading || !editedAmount || !editedDestination}
+            disabled={isLoading || fundingExpired || !editedAmount || !editedDestination}
           >
             {isLoading ? (
               <>
