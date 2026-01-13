@@ -390,6 +390,14 @@ Protocol fee: 1%`,
     return `~${remaining}s`;
   };
 
+  const getSolscanTxUrl = (sig: string): string => {
+    const cluster = String(process.env.NEXT_PUBLIC_SOLANA_CLUSTER ?? "mainnet-beta").trim();
+    const base = `https://solscan.io/tx/${encodeURIComponent(sig)}`;
+    if (cluster === "devnet") return `${base}?cluster=devnet`;
+    if (cluster === "testnet") return `${base}?cluster=testnet`;
+    return base;
+  };
+
   const fetchBalance = async (wallet: string) => {
     try {
       const res = await fetch(`/api/balance?wallet=${wallet}`);
@@ -969,7 +977,18 @@ Protocol fee: 1%`,
                 )}
                 <div className="swap-message-content">
                   <div className="swap-message-text">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        a: ({ href, children, ...props }) => (
+                          <a href={href || "#"} target="_blank" rel="noreferrer" {...props}>
+                            {children}
+                          </a>
+                        ),
+                      }}
+                    >
+                      {msg.content}
+                    </ReactMarkdown>
                   </div>
                   <div className="swap-message-time" suppressHydrationWarning>{formatTime(msg.timestamp)}</div>
                 </div>
@@ -1220,6 +1239,19 @@ Protocol fee: 1%`,
                       <div className="swap-tracking-row">
                         <span>Final TX</span>
                         <span className="swap-tracking-tx">{quickSendState.txSignature.slice(0, 8)}...</span>
+                      </div>
+                    )}
+                    {quickSendState.txSignature && (
+                      <div className="swap-tracking-row">
+                        <span>Explorer</span>
+                        <a
+                          className="swap-tracking-tx"
+                          href={getSolscanTxUrl(quickSendState.txSignature)}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          View on Solscan
+                        </a>
                       </div>
                     )}
                   </div>

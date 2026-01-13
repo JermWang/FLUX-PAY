@@ -117,6 +117,14 @@ export function generateRoutingUpdate(input: {
 }): string {
   const { currentHop, totalHops, status, signature, error } = input;
 
+  const solscanTxUrl = (sig: string): string => {
+    const cluster = String(process.env.NEXT_PUBLIC_SOLANA_CLUSTER ?? "mainnet-beta").trim();
+    const base = `https://solscan.io/tx/${encodeURIComponent(sig)}`;
+    if (cluster === "devnet") return `${base}?cluster=devnet`;
+    if (cluster === "testnet") return `${base}?cluster=testnet`;
+    return base;
+  };
+
   if (status === "routing") {
     const progress = Math.round((currentHop / totalHops) * 100);
     const messages = [
@@ -130,13 +138,14 @@ export function generateRoutingUpdate(input: {
 
   if (status === "complete") {
     const shortSig = signature ? `${signature.slice(0, 8)}...` : "";
+    const url = signature ? solscanTxUrl(signature) : "";
     return `# Transfer Complete
 
 Your tokens have been delivered successfully.
 
 **TX**: \`${shortSig}\`
 
-View on Solscan for confirmation.`;
+${url ? `**Explorer**: [View on Solscan](${url})\n\n` : ""}View on Solscan for confirmation.`;
   }
 
   return `# Transfer Failed
