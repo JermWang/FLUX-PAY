@@ -75,8 +75,7 @@ Privacy-first token transfers on Solana.
 4. Funds route through privacy-preserving multi-hop path
 
 ## Fees
-- **$FLUX holders**: Zero fees
-- **Standard**: 0.5% protocol fee`;
+- **Protocol fee**: 1%`;
 }
 
 export function generateTransferConfirmation(input: {
@@ -100,17 +99,9 @@ export function generateTransferConfirmation(input: {
 
 `;
 
-  if (feeApplied) {
-    response += `**Fee**: ${feeSol.toFixed(4)} SOL (0.5%)
-
-_Hold $FLUX tokens for zero-fee transfers._
+  response += `**Fee**: ${feeSol.toFixed(4)} SOL (1%)
 
 `;
-  } else {
-    response += `**Fee**: None ($FLUX holder benefit)
-
-`;
-  }
 
   response += `Sign the transaction to initiate the transfer.`;
 
@@ -157,9 +148,8 @@ Funds in routing chain may need recovery. Please contact support.`;
 
 export function generateBalanceResponse(input: {
   solBalance: number;
-  hasShipToken: boolean;
 }): string {
-  const { solBalance, hasShipToken } = input;
+  const { solBalance } = input;
 
   let response = `# Wallet Balance
 
@@ -167,11 +157,7 @@ export function generateBalanceResponse(input: {
 
 `;
 
-  if (hasShipToken) {
-    response += `**Status**: $FLUX Holder (Zero fees)`;
-  } else {
-    response += `**Status**: Standard (0.5% fee)\n\n_Hold $FLUX tokens for free transfers._`;
-  }
+  response += `**Protocol Fee**: 1%`;
 
   return response;
 }

@@ -15,7 +15,7 @@ import {
 // Configuration
 // ============================================================================
 
-export const FEE_BPS = 100; // 1% fee for non-$FLUX holders
+export const FEE_BPS = 100; // 1% protocol fee
 const MIN_HOPS = 2;
 const MAX_HOPS = 5;
 const MIN_HOP_DELAY_MS = 500;
@@ -162,10 +162,12 @@ export async function createRoutingPlan(input: {
   const fromPubkey = new PublicKey(fromWallet);
   const toPubkey = new PublicKey(toWallet);
 
-  // Check if sender holds $UWU token
-  const isUwuHolder = await checkUwuTokenHolder(connection, fromPubkey);
-  const feeLamports = calculateFee(amountLamports, !isUwuHolder);
+  const feeLamports = calculateFee(amountLamports, true);
   const netAmount = amountLamports - feeLamports;
+
+  if (netAmount <= 0n) {
+    throw new Error("Amount too small after fees");
+  }
 
   // Generate random number of hops
   const hopCount = randomInt(MIN_HOPS, MAX_HOPS);
@@ -211,7 +213,7 @@ export async function createRoutingPlan(input: {
     hops,
     burnerWallets,
     estimatedCompletionMs: totalDelayMs + hopCount * 2000, // Add ~2s per hop for tx confirmation
-    feeApplied: !isUwuHolder,
+    feeApplied: feeLamports > 0n,
     feeLamports,
   };
 }

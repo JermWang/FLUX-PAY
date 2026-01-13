@@ -295,7 +295,7 @@ export default function DocsPage() {
               <div className="docs-card">
                 <p>
                   FLUX Pay provides two modes of operation: <strong>AI Assistant</strong> for conversational 
-                  transfers with wallet connection, and <strong>Non-Custodial</strong> mode (coming soon).
+                  transfers with wallet connection, and <strong>Non-Custodial</strong> mode (no wallet connect).
                 </p>
                 
                 <div className="docs-steps">
@@ -399,7 +399,7 @@ export default function DocsPage() {
                 </div>
                 <div className="docs-command">
                   <code>balance</code>
-                  <p>Check your current SOL balance and $FLUX token holder status</p>
+                  <p>Check your current SOL balance</p>
                 </div>
                 <div className="docs-command">
                   <code>help</code>
@@ -422,18 +422,12 @@ export default function DocsPage() {
                     <span>Fee</span>
                   </div>
                   <div className="docs-fee-row">
-                    <span>$FLUX Token Holder</span>
-                    <span className="docs-fee-free">Free</span>
-                  </div>
-                  <div className="docs-fee-row">
-                    <span>Non-holder</span>
+                    <span>All transfers</span>
                     <span>1%</span>
                   </div>
                 </div>
                 <p className="docs-fee-note">
-                  Hold $FLUX tokens in your wallet to unlock <strong>free private transfers</strong>. 
-                  For non-holders, a small 1% fee is deducted from the transfer amount to support protocol 
-                  development and infrastructure costs.
+                  A 1% protocol fee is deducted from the transfer amount to support protocol development and infrastructure costs.
                 </p>
                 <div className="docs-highlight">
                   <strong>Transparent Fees:</strong> Fees are shown in the UI. Network fees may apply when funding the transfer.
@@ -526,7 +520,7 @@ export default function DocsPage() {
                     <h4>Do I need to connect my wallet?</h4>
                     <p>
                       For <strong>AI Assistant</strong> transfers, yes—you&apos;ll connect a wallet to sign the initial funding transaction.{" "}
-                      <strong>Non-Custodial</strong> mode (no wallet connect) is coming soon.
+                      <strong>Non-Custodial</strong> mode does not require wallet connection.
                     </p>
                   </div>
                   <div className="docs-faq-item">
@@ -584,7 +578,7 @@ export default function DocsPage() {
                   <div className="docs-faq-item">
                     <h4>Is staking required to use FluxPay?</h4>
                     <p>
-                      No. FluxPay swaps and payments remain free and accessible to everyone. Staking is optional and designed for users who want to support the network and participate more deeply in its economics.
+                      No. FluxPay transfers remain accessible to everyone. Staking is optional and designed for users who want to support the network and participate more deeply in its economics.
                     </p>
                   </div>
                   <div className="docs-faq-item">

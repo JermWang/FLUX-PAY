@@ -97,14 +97,14 @@ Your privacy-first transfer assistant for Solana.
 - \`help\` - View all available commands
 - \`status\` - Check transfer progress
 
-$FLUX token holders receive free transfers.`,
+Protocol fee: 1%`,
       timestamp: 0, // Use 0 for initial message to avoid hydration mismatch
     },
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [transferState, setTransferState] = useState<TransferState | null>(null);
-  const [balanceInfo, setBalanceInfo] = useState<{ sol: number; hasShip: boolean } | null>(null);
+  const [balanceInfo, setBalanceInfo] = useState<{ sol: number } | null>(null);
   const [swapMode, setSwapMode] = useState<"custodial" | "non-custodial">("non-custodial");
   const [quickSendState, setQuickSendState] = useState<QuickSendState | null>(null);
   const [quickSendForm, setQuickSendForm] = useState({ destination: "", amount: "" });
@@ -192,12 +192,11 @@ $FLUX token holders receive free transfers.`,
 
     try {
       // Create a real transfer plan via the API
-      // Use a placeholder fromWallet - the system will use the first burner as deposit address
       const res = await fetch("/api/transfer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fromWallet: "11111111111111111111111111111111", // System program as placeholder
+          mode: "non_custodial",
           toWallet: quickSendForm.destination,
           amountSol,
           asset: "SOL",
@@ -205,8 +204,8 @@ $FLUX token holders receive free transfers.`,
       });
 
       const data = await res.json();
-      if (data.error) {
-        alert(`Error: ${data.error}`);
+      if (!res.ok || data?.error) {
+        alert(`Error: ${String(data?.error ?? "Failed to create transfer plan")}`);
         return;
       }
 
@@ -253,7 +252,16 @@ $FLUX token holders receive free transfers.`,
           body: JSON.stringify({ id: planId }),
           cache: "no-store",
         });
-        await stepRes.json().catch(() => null);
+        const stepData = await stepRes.json().catch(() => null);
+        if (!stepRes.ok || (stepData && typeof stepData === "object" && (stepData as any).error)) {
+          stopNonCustodialPolling();
+          const msg =
+            stepData && typeof stepData === "object" && typeof (stepData as any).error === "string"
+              ? String((stepData as any).error)
+              : "Transfer step failed";
+          setQuickSendState((prev) => (prev ? { ...prev, status: "failed", error: msg } : null));
+          return;
+        }
 
         // Get current status
         const statusRes = await fetch(`/api/transfer/status?id=${encodeURIComponent(planId)}`, { cache: "no-store" });
@@ -334,7 +342,7 @@ $FLUX token holders receive free transfers.`,
       const res = await fetch(`/api/balance?wallet=${wallet}`);
       const data = await res.json();
       if (data.balanceSol !== undefined) {
-        setBalanceInfo({ sol: data.balanceSol, hasShip: data.hasUwuToken });
+        setBalanceInfo({ sol: data.balanceSol });
       }
     } catch (e) {
       console.error("Failed to fetch balance:", e);
@@ -394,6 +402,21 @@ $FLUX token holders receive free transfers.`,
           cache: "no-store",
         });
         const stepData = await stepRes.json().catch(() => null);
+
+        if (!stepRes.ok || (stepData && typeof stepData === "object" && typeof (stepData as any).error === "string")) {
+          stopTransferPolling();
+          const msg =
+            stepData && typeof stepData === "object" && typeof (stepData as any).error === "string"
+              ? String((stepData as any).error)
+              : "Transfer step failed";
+          addMessage(
+            "assistant",
+            generateRoutingUpdate({ currentHop: 0, totalHops: 0, status: "failed", error: msg }),
+            { transferId: input.planId, status: "failed" }
+          );
+          setTransferState((prev) => (prev ? { ...prev, status: "failed" } : null));
+          return;
+        }
 
         if (stepData && typeof stepData === "object") {
           const stepStatus = String((stepData as any)?.status ?? "");
@@ -526,7 +549,7 @@ $FLUX token holders receive free transfers.`,
 
   const handleTransferCommand = async (cmd: ParsedTransferCommand) => {
     if (!publicKey || !signTransaction) {
-      addMessage("assistant", "Please connect your wallet first! Click the connect button above~ 🔗");
+      addMessage("assistant", "Please connect your wallet first.");
       return;
     }
 
@@ -573,7 +596,7 @@ $FLUX token holders receive free transfers.`,
       // Also add a chat message
       addMessage(
         "assistant",
-        `I've prepared your transfer! Please review the details and confirm~ ✧`,
+        `I've prepared your transfer. Please review the details and confirm.`,
         { transferId: planData.id, status: "pending" }
       );
 
@@ -707,7 +730,7 @@ $FLUX token holders receive free transfers.`,
 
       addMessage(
         "assistant",
-        `✅ Transfer signed! TX: \`${signature.slice(0, 12)}...\`\n\nNow applying privacy-preserving multi-hop routing...`
+        `Transfer signed. TX: \`${signature.slice(0, 12)}...\`\n\nNow applying privacy-preserving multi-hop routing...`
       );
       startTransferPolling({ planId: planData.id, fundingSignature: signature });
 
@@ -717,7 +740,7 @@ $FLUX token holders receive free transfers.`,
 
       // Wallet adapter throws when user cancels/rejects the signing prompt.
       if (lower.includes("user rejected") || lower.includes("rejected") || lower.includes("cancel")) {
-        addMessage("assistant", "No worries~ Signature request cancelled. You can try again when you're ready!");
+        addMessage("assistant", "Signature request cancelled. You can try again when you're ready.");
         return;
       }
 
@@ -738,7 +761,7 @@ $FLUX token holders receive free transfers.`,
 
   const handleModalCancel = () => {
     setTransferModalData(null);
-    addMessage("assistant", "Transfer cancelled~ Let me know if you want to try again!");
+    addMessage("assistant", "Transfer cancelled. Let me know if you want to try again.");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -772,7 +795,6 @@ $FLUX token holders receive free transfers.`,
               "assistant",
               generateBalanceResponse({
                 solBalance: currentBalance.sol,
-                hasShipToken: currentBalance.hasShip,
               })
             );
           } else {
@@ -872,7 +894,6 @@ $FLUX token holders receive free transfers.`,
               {connected && balanceInfo && (
                 <div className="swap-balance-row">
                   <span className="swap-balance-amount">{balanceInfo.sol.toFixed(4)} SOL</span>
-                  {balanceInfo.hasShip && <span className="swap-balance-badge">Free Transfers</span>}
                 </div>
               )}
               {/* Chat Messages */}

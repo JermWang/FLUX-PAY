@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { PublicKey } from "@solana/web3.js";
 
 import { getConnection, getServerCommitment, withRetry } from "../../lib/rpc";
-import { checkUwuTokenHolder } from "../../lib/uwuRouter";
 
 export async function GET(req: NextRequest) {
   try {
@@ -23,10 +22,7 @@ export async function GET(req: NextRequest) {
     const connection = getConnection();
     const commitment = getServerCommitment();
 
-    const [balanceLamports, hasUwuToken] = await Promise.all([
-      withRetry(() => connection.getBalance(pubkey, commitment)),
-      checkUwuTokenHolder(connection, pubkey),
-    ]);
+    const balanceLamports = await withRetry(() => connection.getBalance(pubkey, commitment));
 
     const balanceSol = balanceLamports / 1_000_000_000;
 
@@ -34,8 +30,6 @@ export async function GET(req: NextRequest) {
       wallet,
       balanceLamports,
       balanceSol,
-      hasUwuToken,
-      feeWaived: hasUwuToken,
     });
   } catch (e) {
     console.error("Balance check error:", e);

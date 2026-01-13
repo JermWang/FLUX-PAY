@@ -2,7 +2,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { v4 as uuidv4 } from "uuid";
 
 import { privyCreateSolanaWallet } from "./privy";
-import { checkUwuTokenHolder, calculateFee, getTreasuryWallet, TransferAsset } from "./uwuRouter";
+import { calculateFee, getTreasuryWallet, TransferAsset } from "./uwuRouter";
 
 const MIN_HOPS = 7;
 const MAX_HOPS = 12;
@@ -79,17 +79,19 @@ export async function createPrivyRoutingPlan(input: {
   const amountLamports = BigInt(input.amountLamports);
 
   const id = uuidv4();
-  const fromPubkey = new PublicKey(fromWallet);
   new PublicKey(toWallet);
 
-  const isUwuHolder = await checkUwuTokenHolder(connection, fromPubkey);
-  const feeLamports = calculateFee(amountLamports, !isUwuHolder);
+  const feeLamports = calculateFee(amountLamports, true);
   const netAmountLamports = amountLamports - feeLamports;
+
+  if (netAmountLamports <= 0n) {
+    throw new Error("Amount too small after fees");
+  }
 
   if (feeLamports > 0n) {
     const treasury = getTreasuryWallet();
     if (!treasury) {
-      throw new Error("UWU_TREASURY_WALLET is required when fees are enabled (non-$UWU holders)");
+      throw new Error("UWU_TREASURY_WALLET is required when feeLamports > 0");
     }
   }
 
@@ -130,7 +132,7 @@ export async function createPrivyRoutingPlan(input: {
       hopDelaysMs,
       estimatedCompletionMs,
       finalNotBeforeUnixMs,
-      feeApplied: !isUwuHolder,
+      feeApplied: feeLamports > 0n,
       feeLamports: feeLamports.toString(),
       createdAtUnix: nowUnix,
     },

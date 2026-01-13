@@ -41,6 +41,7 @@ export default function TransferModal({ isOpen, data, onConfirm, onCancel, isLoa
   const estimatedMinutes = Math.ceil(data.estimatedTimeMs / 60000);
   const currentAmount = parseFloat(editedAmount) || 0;
   const estimatedUsd = (currentAmount * 180).toFixed(2); // Rough SOL price estimate
+  const netAmount = currentAmount > 0 ? Math.max(0, currentAmount - (data.feeApplied ? data.feeSol : 0)) : 0;
 
   const handleAmountChange = (value: string) => {
     // Only allow valid number input
@@ -110,7 +111,7 @@ export default function TransferModal({ isOpen, data, onConfirm, onCancel, isLoa
           <div className="transfer-modal-section">
             <label className="transfer-modal-label">To</label>
             <div className="transfer-modal-output-row">
-              <span className="transfer-modal-output-amount">{currentAmount > 0 ? (currentAmount - (data.feeApplied ? currentAmount * 0.005 : 0)).toFixed(6) : "0"}</span>
+              <span className="transfer-modal-output-amount">{netAmount > 0 ? netAmount.toFixed(6) : "0"}</span>
               <div className="transfer-modal-token">
                 <div className="transfer-modal-token-icon">◎</div>
                 <div className="transfer-modal-token-info">
@@ -141,12 +142,9 @@ export default function TransferModal({ isOpen, data, onConfirm, onCancel, isLoa
               <span className="transfer-modal-route-hops">{data.hopCount} hops</span>
               <span className="transfer-modal-route-time">~{estimatedMinutes} min</span>
               <span className="transfer-modal-route-fee">
-                {data.feeApplied ? `${data.feeSol.toFixed(4)} SOL fee` : "No fee"}
+                {`${data.feeSol.toFixed(4)} SOL fee (1%)`}
               </span>
             </div>
-            {!data.feeApplied && (
-              <span className="transfer-modal-route-benefit">$FLUX Holder</span>
-            )}
           </div>
 
           {hasChanges && (
@@ -175,7 +173,7 @@ export default function TransferModal({ isOpen, data, onConfirm, onCancel, isLoa
             ) : hasChanges ? (
               "Update & Proceed"
             ) : (
-              "Proceed To Swap"
+              "Proceed"
             )}
           </button>
         </div>
