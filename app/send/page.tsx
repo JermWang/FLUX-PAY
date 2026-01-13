@@ -85,16 +85,17 @@ export default function Home() {
     {
       id: "welcome",
       role: "assistant",
-      content: `# Welcome to FLUX
+      content: `# Welcome to FLUX Pay
 
-Privacy-first token transfers on Solana.
+Your privacy-first transfer assistant for Solana.
 
-**Quick Start:**
-- "send 2 SOL privately to [address]"
-- "balance" - check your wallet
-- "help" - view all commands
+**Commands:**
+- \`send [amount] SOL privately to [address]\` - Execute a private transfer
+- \`balance\` - Check your wallet balance
+- \`help\` - View all available commands
+- \`status\` - Check transfer progress
 
-Hold $FLUX tokens for zero-fee transfers.`,
+$FLUX token holders receive free transfers.`,
       timestamp: 0, // Use 0 for initial message to avoid hydration mismatch
     },
   ]);
@@ -102,7 +103,7 @@ Hold $FLUX tokens for zero-fee transfers.`,
   const [isProcessing, setIsProcessing] = useState(false);
   const [transferState, setTransferState] = useState<TransferState | null>(null);
   const [balanceInfo, setBalanceInfo] = useState<{ sol: number; hasShip: boolean } | null>(null);
-  const [swapMode, setSwapMode] = useState<"custodial" | "non-custodial">("custodial");
+  const [swapMode, setSwapMode] = useState<"custodial" | "non-custodial">("non-custodial");
   const [quickSendState, setQuickSendState] = useState<QuickSendState | null>(null);
   const [quickSendForm, setQuickSendForm] = useState({ destination: "", amount: "" });
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -769,16 +770,16 @@ Hold $FLUX tokens for zero-fee transfers.`,
             <h2 className="swap-card-title">{effectiveSwapMode === "custodial" ? "AI Assisted" : "Non-Custodial"}</h2>
             <div className="swap-mode-tabs">
               <button
-                className={`swap-mode-tab ${swapMode === "custodial" ? "swap-mode-tab--active" : ""}`}
-                onClick={() => setSwapMode("custodial")}
-              >
-                AI Assisted
-              </button>
-              <button
                 className={`swap-mode-tab ${swapMode === "non-custodial" ? "swap-mode-tab--active" : ""}`}
                 onClick={() => setSwapMode("non-custodial")}
               >
                 Non-Custodial
+              </button>
+              <button
+                className={`swap-mode-tab ${swapMode === "custodial" ? "swap-mode-tab--active" : ""}`}
+                onClick={() => setSwapMode("custodial")}
+              >
+                AI Assisted
               </button>
             </div>
             </div>

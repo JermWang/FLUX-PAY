@@ -59,9 +59,9 @@ export type ChatMessage = {
 };
 
 export function generateHelpResponse(): string {
-  return `# Uwu Swap Commands ~
+  return `# FLUX Pay Commands
 
-Privacy-first token transfers on Solana, nya~
+Privacy-first token transfers on Solana.
 
 ## Commands
 - **Send tokens**: "send 2 SOL privately to [address]"
@@ -69,13 +69,13 @@ Privacy-first token transfers on Solana, nya~
 - **Transfer status**: "status"
 
 ## How It Works
-1. Tell me where to send your tokens~
-2. I'll generate a sneaky routing plan
+1. Specify the destination and amount
+2. A routing plan is generated with ephemeral hops
 3. Sign the transaction in your wallet
-4. Watch your tokens move through a privacy-preserving route!
+4. Funds route through privacy-preserving multi-hop path
 
 ## Fees
-- **$UWU holders**: Zero fees (you're the best~)
+- **$FLUX holders**: Zero fees
 - **Standard**: 0.5% protocol fee`;
 }
 
@@ -91,7 +91,7 @@ export function generateTransferConfirmation(input: {
   const shortDest = `${destination.slice(0, 4)}...${destination.slice(-4)}`;
   const timeSeconds = Math.ceil(estimatedTimeMs / 1000);
 
-  let response = `# Transfer Plan Ready ~
+  let response = `# Transfer Plan Ready
 
 **Amount**: ${amount} SOL
 **Destination**: \`${shortDest}\`
@@ -103,16 +103,16 @@ export function generateTransferConfirmation(input: {
   if (feeApplied) {
     response += `**Fee**: ${feeSol.toFixed(4)} SOL (0.5%)
 
-_Hold $UWU tokens for zero-fee transfers~_
+_Hold $FLUX tokens for zero-fee transfers._
 
 `;
   } else {
-    response += `**Fee**: None (thanks for holding $UWU!)
+    response += `**Fee**: None ($FLUX holder benefit)
 
 `;
   }
 
-  response += `Sign the transaction to start the transfer, nya~`;
+  response += `Sign the transaction to initiate the transfer.`;
 
   return response;
 }
@@ -129,30 +129,30 @@ export function generateRoutingUpdate(input: {
   if (status === "routing") {
     const progress = Math.round((currentHop / totalHops) * 100);
     const messages = [
-      "hopping through the chain~",
-      "sneaking past watchers~",
-      "almost there~",
-      "wrapping up~",
+      "routing through ephemeral hop",
+      "processing privacy layer",
+      "finalizing route",
+      "completing transfer",
     ];
     return `Hop ${currentHop}/${totalHops}... ${messages[currentHop % 4]} (${progress}%)`;
   }
 
   if (status === "complete") {
     const shortSig = signature ? `${signature.slice(0, 8)}...` : "";
-    return `# Transfer Complete!
+    return `# Transfer Complete
 
-Your tokens arrived safely~
+Your tokens have been delivered successfully.
 
 **TX**: \`${shortSig}\`
 
-View on Solscan for confirmation, nya~`;
+View on Solscan for confirmation.`;
   }
 
   return `# Transfer Failed
 
 **Error**: ${error || "Unknown error"}
 
-Funds in routing chain may need recovery. Contact support~`;
+Funds in routing chain may need recovery. Please contact support.`;
 }
 
 export function generateBalanceResponse(input: {
@@ -168,9 +168,9 @@ export function generateBalanceResponse(input: {
 `;
 
   if (hasShipToken) {
-    response += `**Status**: $UWU Holder (Zero fees, you're amazing~)`;
+    response += `**Status**: $FLUX Holder (Zero fees)`;
   } else {
-    response += `**Status**: Standard (0.5% fee)\n\n_Get $UWU tokens for free transfers~_`;
+    response += `**Status**: Standard (0.5% fee)\n\n_Hold $FLUX tokens for free transfers._`;
   }
 
   return response;
@@ -178,9 +178,9 @@ export function generateBalanceResponse(input: {
 
 export function generateUnknownResponse(): string {
   const responses = [
-    "Hmm, I didn't catch that~ Try 'send 2 SOL privately to [address]' or type 'help'!",
-    "Unknown command, nya~ Type 'help' for available commands!",
-    "Not sure what you mean~ Example: 'send 1.5 SOL privately to 9xj...abc'",
+    "I didn't recognize that command. Try 'send 2 SOL privately to [address]' or type 'help'.",
+    "Unknown command. Type 'help' for available commands.",
+    "Command not recognized. Example: 'send 1.5 SOL privately to 9xj...abc'",
   ];
   return responses[Math.floor(Math.random() * responses.length)];
 }
@@ -191,15 +191,15 @@ export function generateInsufficientFundsResponse(required: number, available: n
 **Required**: ${required.toFixed(4)} SOL
 **Available**: ${available.toFixed(4)} SOL
 
-Add more SOL to your wallet and try again~`;
+Please add more SOL to your wallet and try again.`;
 }
 
 export function generateSigningMessage(): string {
-  return "Waiting for your signature~";
+  return "Awaiting wallet signature...";
 }
 
 export function generateRoutingStartMessage(): string {
-  return "Starting private transfer! Applying privacy-preserving multi-hop routing, nya~";
+  return "Initiating private transfer. Applying privacy-preserving multi-hop routing...";
 }
 
 // ============================================================================

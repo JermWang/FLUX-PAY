@@ -51,7 +51,6 @@ export const GL = ({ hovering }: { hovering: boolean }) => {
           introspect={hovering}
         />
         <Effects multisamping={0} disableGamma>
-          {/* @ts-ignore */}
           <shaderPass
             args={[VignetteShader]}
             uniforms-darkness-value={vignetteDarkness}
