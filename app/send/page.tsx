@@ -41,6 +41,7 @@ type TransferState = {
 
 type QuickSendState = {
   status: "idle" | "awaiting_deposit" | "deposit_detected" | "routing" | "complete" | "failed";
+  planId: string;
   depositAddress: string;
   destinationAddress: string;
   amount: number;
@@ -49,6 +50,7 @@ type QuickSendState = {
   startTime: number;
   estimatedArrival: number;
   txSignature?: string;
+  error?: string;
 };
 
  type AgentProfile = {
@@ -182,53 +184,133 @@ $FLUX token holders receive free transfers.`,
     }
   }, [quickSendState]);
 
-  const handleGenerateDepositAddress = () => {
+  const handleGenerateDepositAddress = async () => {
     if (!quickSendForm.destination || !quickSendForm.amount) return;
     
-    // Demo: Generate a fake deposit address and start tracking
-    const demoDepositAddress = "UwU" + Math.random().toString(36).slice(2, 10) + "...demo";
-    setQuickSendState({
-      status: "awaiting_deposit",
-      depositAddress: demoDepositAddress,
-      destinationAddress: quickSendForm.destination,
-      amount: parseFloat(quickSendForm.amount),
-      hopCount: 3,
-      currentHop: 0,
-      startTime: Date.now(),
-      estimatedArrival: Date.now() + 45000, // 45 seconds estimate
-    });
-    setElapsedTime(0);
+    const amountSol = parseFloat(quickSendForm.amount);
+    if (!Number.isFinite(amountSol) || amountSol <= 0) return;
+
+    try {
+      // Create a real transfer plan via the API
+      // Use a placeholder fromWallet - the system will use the first burner as deposit address
+      const res = await fetch("/api/transfer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fromWallet: "11111111111111111111111111111111", // System program as placeholder
+          toWallet: quickSendForm.destination,
+          amountSol,
+          asset: "SOL",
+        }),
+      });
+
+      const data = await res.json();
+      if (data.error) {
+        alert(`Error: ${data.error}`);
+        return;
+      }
+
+      // Start tracking with real plan data
+      setQuickSendState({
+        status: "awaiting_deposit",
+        planId: data.id,
+        depositAddress: data.firstBurnerPubkey,
+        destinationAddress: data.resolvedToWallet || quickSendForm.destination,
+        amount: amountSol,
+        hopCount: data.hopCount || 3,
+        currentHop: 0,
+        startTime: Date.now(),
+        estimatedArrival: Date.now() + (data.estimatedCompletionMs || 60000),
+      });
+      setElapsedTime(0);
+
+      // Start polling for deposit and routing progress
+      startNonCustodialPolling(data.id);
+    } catch (err) {
+      console.error("Failed to create transfer plan:", err);
+      alert("Failed to create transfer. Please try again.");
+    }
   };
 
-  const simulateTransferProgress = () => {
-    if (!quickSendState) return;
-    
-    // Demo: Simulate deposit detection
-    setQuickSendState(prev => prev ? { ...prev, status: "deposit_detected", currentHop: 0 } : null);
-    
-    // Simulate routing through hops
-    setTimeout(() => {
-      setQuickSendState(prev => prev ? { ...prev, status: "routing", currentHop: 1 } : null);
-    }, 2000);
-    
-    setTimeout(() => {
-      setQuickSendState(prev => prev ? { ...prev, currentHop: 2 } : null);
-    }, 4000);
-    
-    setTimeout(() => {
-      setQuickSendState(prev => prev ? { ...prev, currentHop: 3 } : null);
-    }, 6000);
-    
-    setTimeout(() => {
-      setQuickSendState(prev => prev ? { 
-        ...prev, 
-        status: "complete",
-        txSignature: "demo" + Math.random().toString(36).slice(2, 12)
-      } : null);
-    }, 8000);
-  };
+  const nonCustodialPollRef = useRef<number | null>(null);
+
+  const stopNonCustodialPolling = useCallback(() => {
+    if (nonCustodialPollRef.current != null) {
+      window.clearInterval(nonCustodialPollRef.current);
+      nonCustodialPollRef.current = null;
+    }
+  }, []);
+
+  const startNonCustodialPolling = useCallback((planId: string) => {
+    stopNonCustodialPolling();
+
+    const pollOnce = async () => {
+      try {
+        // Call step endpoint to advance the transfer
+        const stepRes = await fetch("/api/transfer/step", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: planId }),
+          cache: "no-store",
+        });
+        await stepRes.json().catch(() => null);
+
+        // Get current status
+        const statusRes = await fetch(`/api/transfer/status?id=${encodeURIComponent(planId)}`, { cache: "no-store" });
+        const statusData = await statusRes.json();
+
+        if (statusData?.error) {
+          stopNonCustodialPolling();
+          setQuickSendState(prev => prev ? { ...prev, status: "failed", error: statusData.error } : null);
+          return;
+        }
+
+        const serverStatus = String(statusData?.status ?? "");
+        const hopCount = Number(statusData?.plan?.hopCount ?? 0);
+        const currentHop = Number(statusData?.state?.currentHop ?? 0);
+
+        setQuickSendState(prev => {
+          if (!prev) return null;
+          
+          let newStatus = prev.status;
+          if (serverStatus === "awaiting_funding") {
+            newStatus = "awaiting_deposit";
+          } else if (serverStatus === "routing") {
+            newStatus = currentHop > 0 ? "routing" : "deposit_detected";
+          } else if (serverStatus === "complete") {
+            newStatus = "complete";
+          } else if (serverStatus === "failed") {
+            newStatus = "failed";
+          }
+
+          return {
+            ...prev,
+            status: newStatus,
+            hopCount: hopCount || prev.hopCount,
+            currentHop,
+            txSignature: statusData?.state?.finalSignature || prev.txSignature,
+          };
+        });
+
+        if (serverStatus === "complete" || serverStatus === "failed") {
+          stopNonCustodialPolling();
+        }
+      } catch (err) {
+        console.error("Polling error:", err);
+      }
+    };
+
+    // Poll immediately, then every 2.5 seconds
+    pollOnce();
+    nonCustodialPollRef.current = window.setInterval(pollOnce, 2500);
+  }, [stopNonCustodialPolling]);
+
+  useEffect(() => {
+    return () => stopNonCustodialPolling();
+  }, [stopNonCustodialPolling]);
 
   const resetQuickSend = () => {
+    stopNonCustodialPolling();
     setQuickSendState(null);
     setQuickSendForm({ destination: "", amount: "" });
     setElapsedTime(0);
@@ -938,7 +1020,15 @@ $FLUX token holders receive free transfers.`,
                     <label>Send {quickSendState.amount} SOL to:</label>
                     <div className="swap-tracking-address">
                       <code>{quickSendState.depositAddress}</code>
-                      <button className="swap-copy-btn" title="Copy address">📋</button>
+                      <button 
+                        className="swap-copy-btn" 
+                        title="Copy address"
+                        onClick={() => {
+                          navigator.clipboard.writeText(quickSendState.depositAddress);
+                        }}
+                      >
+                        📋
+                      </button>
                     </div>
                   </div>
 
@@ -957,9 +1047,6 @@ $FLUX token holders receive free transfers.`,
                     </div>
                   </div>
 
-                  <button className="swap-send-btn swap-send-btn--secondary" onClick={simulateTransferProgress}>
-                    🔄 Simulate Deposit (Demo)
-                  </button>
                   <button className="swap-cancel-btn" onClick={resetQuickSend}>
                     Cancel
                   </button>
