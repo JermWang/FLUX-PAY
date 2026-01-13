@@ -77,7 +77,12 @@ export default function TransferModal({ isOpen, data, onConfirm, onCancel, isLoa
 
   if (!isOpen || !data) return null;
 
-  const estimatedMinutes = Math.ceil(data.estimatedTimeMs / 60000);
+  const estimatedTimeLabel =
+    data.estimatedTimeMs > 0
+      ? data.estimatedTimeMs < 60_000
+        ? `~${Math.ceil(data.estimatedTimeMs / 1000)}s`
+        : `~${Math.ceil(data.estimatedTimeMs / 60000)} min`
+      : "—";
   const currentAmount = parseFloat(editedAmount) || 0;
   const estimatedUsd = (currentAmount * 180).toFixed(2); // Rough SOL price estimate
   const netAmount = currentAmount > 0 ? Math.max(0, currentAmount - (data.feeApplied ? data.feeSol : 0)) : 0;
@@ -200,7 +205,7 @@ export default function TransferModal({ isOpen, data, onConfirm, onCancel, isLoa
             <div className="transfer-modal-route-badge">Private</div>
             <div className="transfer-modal-route-info">
               <span className="transfer-modal-route-hops">{data.hopCount} hops</span>
-              <span className="transfer-modal-route-time">~{estimatedMinutes} min</span>
+              <span className="transfer-modal-route-time">{estimatedTimeLabel}</span>
               <span className="transfer-modal-route-fee">
                 {`${data.feeSol.toFixed(4)} SOL fee (1%)`}
               </span>

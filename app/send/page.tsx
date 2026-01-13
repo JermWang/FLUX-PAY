@@ -48,7 +48,8 @@ type QuickSendState = {
   hopCount: number;
   currentHop: number;
   startTime: number;
-  estimatedArrival: number;
+  estimatedRoutingMs: number;
+  estimatedArrivalUnixMs?: number;
   fundingExpiresAtUnixMs?: number;
   txSignature?: string;
   error?: string;
@@ -225,7 +226,7 @@ Protocol fee: 1%`,
         hopCount: data.hopCount || 3,
         currentHop: 0,
         startTime: Date.now(),
-        estimatedArrival: Date.now() + (data.estimatedCompletionMs || 60000),
+        estimatedRoutingMs: Number(data.estimatedCompletionMs || 60000),
         fundingExpiresAtUnixMs,
       });
       setElapsedTime(0);
@@ -324,6 +325,8 @@ Protocol fee: 1%`,
         const serverStatus = String(statusData?.status ?? "");
         const hopCount = Number(statusData?.plan?.hopCount ?? 0);
         const currentHop = Number(statusData?.state?.currentHop ?? 0);
+        const estimatedCompletionMs = Number(statusData?.plan?.estimatedCompletionMs ?? 0);
+        const feeCollected = Boolean(statusData?.state?.feeCollected ?? false);
 
         setQuickSendState(prev => {
           if (!prev) return null;
@@ -339,11 +342,34 @@ Protocol fee: 1%`,
             newStatus = "failed";
           }
 
+          const shouldResetTimer =
+            prev.status === "awaiting_deposit" && (newStatus === "deposit_detected" || newStatus === "routing");
+
+          const nextStartTime = shouldResetTimer ? Date.now() : prev.startTime;
+
+          const perHopMs =
+            hopCount > 0 && estimatedCompletionMs > 0
+              ? Math.max(1500, Math.ceil(estimatedCompletionMs / hopCount))
+              : 2000;
+
+          const remainingHops = Math.max(0, (hopCount || prev.hopCount) - currentHop);
+          const remainingMs = remainingHops * perHopMs + (feeCollected ? 0 : perHopMs);
+
+          const nextEstimatedArrivalUnixMs =
+            newStatus === "deposit_detected" || newStatus === "routing"
+              ? Date.now() + remainingMs
+              : newStatus === "complete"
+                ? Date.now()
+                : undefined;
+
           return {
             ...prev,
             status: newStatus,
             hopCount: hopCount || prev.hopCount,
             currentHop,
+            startTime: nextStartTime,
+            estimatedRoutingMs: estimatedCompletionMs > 0 ? estimatedCompletionMs : prev.estimatedRoutingMs,
+            estimatedArrivalUnixMs: nextEstimatedArrivalUnixMs,
             txSignature: statusData?.state?.finalSignature || prev.txSignature,
             error:
               serverStatus === "failed"
@@ -385,9 +411,20 @@ Protocol fee: 1%`,
 
   const getEstimatedRemaining = () => {
     if (!quickSendState) return "—";
-    const remaining = Math.max(0, Math.floor((quickSendState.estimatedArrival - Date.now()) / 1000));
-    if (remaining <= 0) return "Any moment...";
-    return `~${remaining}s`;
+    if (quickSendState.status === "awaiting_deposit") {
+      const seconds = Math.max(1, Math.ceil((quickSendState.estimatedRoutingMs || 0) / 1000));
+      return `~${seconds}s after deposit`;
+    }
+
+    const etaUnixMs = Number(quickSendState.estimatedArrivalUnixMs ?? 0);
+    if (!Number.isFinite(etaUnixMs) || etaUnixMs <= 0) return "—";
+
+    const remaining = Math.max(0, Math.ceil((etaUnixMs - Date.now()) / 1000));
+    if (remaining <= 5) return "Finalizing (≤5s)";
+    if (remaining < 60) return `~${remaining}s`;
+    const mins = Math.floor(remaining / 60);
+    const secs = remaining % 60;
+    return `~${mins}m ${secs}s`;
   };
 
   const getSolscanTxUrl = (sig: string): string => {
